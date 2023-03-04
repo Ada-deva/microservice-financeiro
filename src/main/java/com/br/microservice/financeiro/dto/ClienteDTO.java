@@ -35,7 +35,7 @@ public class ClienteDTO {
                 .build();
     }
 
-    public Cliente toEntity() throws InformacaoInvalidaException {
+    public Cliente toEntity(){
         return Cliente
                 .builder()
                 .id(id)
