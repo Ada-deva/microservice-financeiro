@@ -11,6 +11,17 @@ spring:
     jpa:
       hibernate:
           ddl-auto: update
+    rabbitmq:
+      host: localhost
+      port: 5672
+      username: admin
+      password: admin
+      cache:
+        connection:
+          mode: CONNECTION
+        channel:
+          size: 50
+          checkout-timeout: 10000
 server:
     error:
       include-message: always
@@ -25,3 +36,12 @@ application:
 springdoc:
   api-docs:
     path: /api-docs
+business:
+  financeiro:
+      url: ${VARIAVEL_URL:http://localhost:9080/pagamento/fornecedor}
+      message:
+        queue:
+          fornecedor: fornecedor
+          ordem_compra: ordem_compra
+          pagamento: pagamento_ordem_compra
+          ordem_compra_pago: ordem_compra_pago

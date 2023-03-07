@@ -1,7 +1,6 @@
 package com.br.microservice.financeiro.service;
 
 import com.br.microservice.financeiro.dto.FornecedorDTO;
-import com.br.microservice.financeiro.model.Comanda;
 import com.br.microservice.financeiro.model.Fornecedor;
 import com.br.microservice.financeiro.repository.FornecedorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +14,6 @@ public class FornecedorService {
 
     @Autowired
     private FornecedorRepository fornecedorRepository;
-
     public Optional<Fornecedor> cadastrar(FornecedorDTO fornecedor) {
         Fornecedor novoFornecedor = fornecedor.toEntity();
         fornecedorRepository.save(novoFornecedor);

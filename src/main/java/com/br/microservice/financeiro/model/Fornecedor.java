@@ -38,5 +38,6 @@ public class Fornecedor {
 
     private TipoSeguimento seguimento = TipoSeguimento.OUTRO;
     private TipoFornecedor tipoFornecedor;
+    private String identificador;
 
 }

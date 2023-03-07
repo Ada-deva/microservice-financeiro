@@ -2,12 +2,17 @@ package com.br.microservice.financeiro.service;
 
 
 import com.br.microservice.financeiro.dto.OrdemCompraDTO;
+import com.br.microservice.financeiro.dto.OrdemCompraReqDTO;
 import com.br.microservice.financeiro.exception.InformacaoNaoEncontradaException;
 
 import com.br.microservice.financeiro.model.Fornecedor;
+import com.br.microservice.financeiro.model.Insumo;
 import com.br.microservice.financeiro.model.OrdemCompra;
+import com.br.microservice.financeiro.producer.OrdemCompraProducer;
 import com.br.microservice.financeiro.repository.FornecedorRepository;
+import com.br.microservice.financeiro.repository.InsumoRepository;
 import com.br.microservice.financeiro.repository.OrdemCompraRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,8 +20,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
+@Slf4j
 public class OrdemCompraService {
 
     @Autowired
@@ -25,17 +32,66 @@ public class OrdemCompraService {
     @Autowired
     private FornecedorRepository fornecedorRepository;
 
+    @Autowired
+    private InsumoRepository insumoRepository;
+
+    @Autowired
+    private OrdemCompraProducer ordemCompraProducer;
+
     public Optional<OrdemCompra> cadastrar(OrdemCompraDTO ordemCompra) throws InformacaoNaoEncontradaException {
         Optional<Fornecedor> fornecedorEncontrado = fornecedorRepository.findById(ordemCompra.getFornecedor());
+        OrdemCompra novaOrdem = ordemCompra.toEntity();
+        novaOrdem.setIdentificador(UUID.randomUUID().toString());
+        if (fornecedorEncontrado.isEmpty()) {
+            throw new InformacaoNaoEncontradaException("Fornecedor não encontrado!");
+        } else {
+
+            fornecedorEncontrado.ifPresent(novaOrdem::setFornecedor);
+            novaOrdem.setDataCriacao(LocalDateTime.now());
+            List<Insumo> insumoList = ordemCompra.getListaInsumos();
+            int quantidadeInsumos =
+                    insumoList.stream().reduce(0,
+                            (subtotal, insumo) -> subtotal + insumo.getQuantidade(), Integer::sum);
+
+
+            novaOrdem.setQuantidadeTotal(quantidadeInsumos);
+
+            double valorTotal = 0;
+
+            for (Insumo insumo : insumoList) {
+                double valorTotalInsumo = insumo.getValor() * insumo.getQuantidade();
+                valorTotal = valorTotal + valorTotalInsumo;
+                insumoRepository.save(insumo);
+            }
+            novaOrdem.setValorTotal(valorTotal);
+            ordemCompraRepository.save(novaOrdem);
+        }
+        return Optional.of(novaOrdem);
+    }
+
+    public Optional<OrdemCompra> cadastrarPorIdentificador(OrdemCompraReqDTO ordemCompra) throws InformacaoNaoEncontradaException {
+        Optional<Fornecedor> fornecedorEncontrado =
+                fornecedorRepository.findByIdentificador(ordemCompra.getFornecedor().getIdentificador());
+
+
         OrdemCompra novaOrdem = ordemCompra.toEntity();
 
         if (fornecedorEncontrado.isEmpty()) {
             throw new InformacaoNaoEncontradaException("Fornecedor não encontrado!");
         } else {
-            fornecedorEncontrado.ifPresent(novaOrdem::setFornecedor);
+
+
+            List<Insumo> insumoList = ordemCompra.getListaInsumos();
+            for (Insumo insumo : insumoList) {
+                insumoRepository.save(insumo);
+            }
+            novaOrdem.setDataCriacao(LocalDateTime.now());
+            novaOrdem.setFornecedor(fornecedorEncontrado.get());
+
             ordemCompraRepository.save(novaOrdem);
-        }
+      }
         return Optional.of(novaOrdem);
+
     }
 
     public List<OrdemCompra> ordemCompraList() {
@@ -50,17 +106,6 @@ public class OrdemCompraService {
         Optional<OrdemCompra> ordemEncontrada = ordemCompraRepository.findById(id);
 
         if(ordemEncontrada.isPresent()) {
-            if(ordemCompra.getItem() != null){
-                ordemEncontrada.get().setItem(ordemCompra.getItem());
-            }
-
-            if(ordemCompra.getQuantidade() != 0) {
-                ordemEncontrada.get().setQuantidade(ordemCompra.getQuantidade());
-            }
-
-            if(ordemCompra.getValor() != 0) {
-                ordemEncontrada.get().setValor(ordemCompra.getValor());
-            }
 
             if(ordemCompra.getDataVencimento() != null) {
                 ordemEncontrada.get().setDataVencimento(ordemCompra.getDataVencimento());
@@ -74,6 +119,7 @@ public class OrdemCompraService {
                     ordemEncontrada.get().setFornecedor(fornecedorEncontrado.get());
                 }
             }
+
             ordemCompraRepository.save(ordemEncontrada.get());
         }
 
@@ -105,8 +151,8 @@ public class OrdemCompraService {
 
         if(ordemEncontrada.isPresent()) {
             if(ordemVencida.contains(ordemEncontrada.get())){
-                double juros = ordemEncontrada.get().getValor() + ordemEncontrada.get().getValor() * 0.05;
-                ordemEncontrada.get().setValor(juros);
+                double juros = ordemEncontrada.get().getValorTotal() + ordemEncontrada.get().getValorTotal() * 0.05;
+                ordemEncontrada.get().setValorTotal(juros);
                 ordemEncontrada.get().setDataPagamento(LocalDateTime.now());
                 ordemEncontrada.get().setPago(true);
             } else {
@@ -118,6 +164,8 @@ public class OrdemCompraService {
 
         return ordemEncontrada;
     }
+
+
 
     public List<OrdemCompra> obterOrdemCompraPaga() {
         return ordemCompraRepository.findByIsPagoTrue();
