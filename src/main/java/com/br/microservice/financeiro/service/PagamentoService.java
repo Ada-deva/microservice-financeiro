@@ -29,7 +29,7 @@ public class PagamentoService {
     @Autowired
     OrdemCompraProducer ordemCompraProducer;
 
-    public OrdemCompra pagarOrdemCompraIdentificador(String ordemCompra) {
+    public Optional<Optional<OrdemCompra>> pagarOrdemCompraIdentificador(String ordemCompra) {
 
         LocalDate today = LocalDate.now();
         Optional<OrdemCompra> ordemEncontrada = ordemCompraRepository.findByIdentificador(ordemCompra);
@@ -46,13 +46,10 @@ public class PagamentoService {
                 ordemEncontrada.get().setDataPagamento(LocalDateTime.now());
                 ordemEncontrada.get().setPago(true);
             }
+
+            ordemCompraProducer.retornarOrdemPaga(ordemCompra);
+            ordemCompraRepository.save(ordemEncontrada.get());
         }
-
-
-        ordemCompraProducer.retornarOrdemPaga(ordemCompra);
-        return ordemCompraRepository.save(ordemEncontrada.get());
-
-
-
+        return Optional.of(ordemEncontrada);
     }
 }
