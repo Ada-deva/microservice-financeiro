@@ -22,6 +22,8 @@ public class FornecedorDTO {
     private String cpfOuCnpj;
     private TipoSeguimento seguimento;
     private TipoFornecedor tipoFornecedor;
+    private String identificador;
+
 
     public FornecedorDTO of(Fornecedor fornecedor) {
             return FornecedorDTO.builder()
@@ -30,6 +32,7 @@ public class FornecedorDTO {
                     .cpfOuCnpj(fornecedor.getCpfOuCnpj())
                     .seguimento(fornecedor.getSeguimento())
                     .tipoFornecedor(fornecedor.getTipoFornecedor())
+                    .identificador(fornecedor.getIdentificador())
                     .build();
     }
 
@@ -40,6 +43,7 @@ public class FornecedorDTO {
                 .cpfOuCnpj(cpfOuCnpj)
                 .seguimento(seguimento)
                 .tipoFornecedor(tipoFornecedor)
+                .identificador(identificador)
                 .build();
     }
 }

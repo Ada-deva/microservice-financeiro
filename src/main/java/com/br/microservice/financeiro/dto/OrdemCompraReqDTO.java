@@ -1,7 +1,5 @@
 package com.br.microservice.financeiro.dto;
 
-import com.br.microservice.financeiro.enums.TipoItem;
-import com.br.microservice.financeiro.model.Comanda;
 import com.br.microservice.financeiro.model.Fornecedor;
 import com.br.microservice.financeiro.model.Insumo;
 import com.br.microservice.financeiro.model.OrdemCompra;
@@ -9,9 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
 
-import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,7 +16,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrdemCompraDTO {
+public class OrdemCompraReqDTO {
 
     private long id;
 
@@ -32,11 +28,11 @@ public class OrdemCompraDTO {
     private boolean isPago;
     private LocalDateTime dataPagamento;
     private List<Insumo> listaInsumos;
-    private long fornecedor;
+    private Fornecedor fornecedor;
     private String identificador;
 
-    public OrdemCompraDTO of(OrdemCompra ordemCompra) {
-        return OrdemCompraDTO.builder()
+    public OrdemCompraReqDTO of(OrdemCompra ordemCompra) {
+        return OrdemCompraReqDTO.builder()
                 .id(ordemCompra.getId())
                 .dataCriacao(getDataCriacao())
                 .quantidadeTotal(ordemCompra.getQuantidadeTotal())
@@ -45,7 +41,7 @@ public class OrdemCompraDTO {
                 .isPago(ordemCompra.isPago())
                 .dataPagamento(ordemCompra.getDataPagamento())
                 .listaInsumos(ordemCompra.getListaInsumos())
-                .fornecedor(ordemCompra.getFornecedor().getId())
+                .fornecedor(ordemCompra.getFornecedor())
                 .identificador(ordemCompra.getIdentificador())
                 .build();
     }
@@ -64,10 +60,3 @@ public class OrdemCompraDTO {
                 .build();
     }
 }
-
-
-
-
-
-
-
