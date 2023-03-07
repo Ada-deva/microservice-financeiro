@@ -36,15 +36,18 @@ public class PagamentoService {
 
         List<OrdemCompra> ordemVencida =  ordemCompraRepository.findByDataVencimentoLessThanAndIsPagoFalse(today);
 
-        if(ordemVencida.contains(ordemEncontrada.get())){
-            double juros = ordemEncontrada.get().getValorTotal() + ordemEncontrada.get().getValorTotal() * 0.05;
-            ordemEncontrada.get().setValorTotal(juros);
-            ordemEncontrada.get().setDataPagamento(LocalDateTime.now());
-            ordemEncontrada.get().setPago(true);
-        } else {
-            ordemEncontrada.get().setDataPagamento(LocalDateTime.now());
-            ordemEncontrada.get().setPago(true);
+        if(ordemEncontrada.isPresent()) {
+            if(ordemVencida.contains(ordemEncontrada.get())){
+                double juros = ordemEncontrada.get().getValorTotal() + ordemEncontrada.get().getValorTotal() * 0.05;
+                ordemEncontrada.get().setValorTotal(juros);
+                ordemEncontrada.get().setDataPagamento(LocalDateTime.now());
+                ordemEncontrada.get().setPago(true);
+            } else {
+                ordemEncontrada.get().setDataPagamento(LocalDateTime.now());
+                ordemEncontrada.get().setPago(true);
+            }
         }
+
 
         ordemCompraProducer.retornarOrdemPaga(ordemCompra);
         return ordemCompraRepository.save(ordemEncontrada.get());
